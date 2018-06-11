@@ -12,8 +12,6 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
-    
-
 
 # 标签
 class Tag(models.Model):
@@ -50,11 +48,19 @@ class Post(models.Model):
     # 标签
     tags = models.ManyToManyField(Tag, blank=True)
 
+    # 阅读量
+    views = models.PositiveIntegerField(default=0)
+
     def __str__(self):
         return self.title
-        
+
     def get_absolute_url(self):
         return reverse("blog:detail", kwargs={"pk": self.pk})
 
+    def increase_views(self):
+        self.views += 1
+        self.save(update_fields=['views'])
+
     class Meta:
         ordering = ['-created_time']
+
