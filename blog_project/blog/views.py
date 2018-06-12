@@ -1,11 +1,11 @@
 from django.shortcuts import render, get_object_or_404
 import markdown
-from .models import Post, Category,Tag
+from .models import Post, Category, Tag
 from comments.forms import CommentForm
 from django.views.generic import ListView, DetailView
 from django.utils.text import slugify
 from markdown.extensions.toc import TocExtension
-
+from django.db.models import Q
 """ def index(request):
     post_list = Post.objects.all().order_by('-created_time')
     return render(request, 'blog/index.html', context={'post_list': post_list})
@@ -69,9 +69,9 @@ class IndexView(ListView):
         elif page_number == total_pages:
             left = page_range[(page_number-3)
                               if (page_number - 3) > 0 else 0:page_number-1]
-            if left[0]>2:
+            if left[0] > 2:
                 left_has_more = True
-            if left[0]>1:
+            if left[0] > 1:
                 first = True
         else:
             left = page_range[(page_number-3)
@@ -87,19 +87,22 @@ class IndexView(ListView):
                 first = True
 
         data = {
-                    'left': left,
-                    'right': right,
-                    'left_has_more': left_has_more,
-                    'right_has_more': right_has_more,
-                    'first': first,
-                    'last': last,
-                }
+            'left': left,
+            'right': right,
+            'left_has_more': left_has_more,
+            'right_has_more': right_has_more,
+            'first': first,
+            'last': last,
+        }
         return data
+
+
 class CategoryView(IndexView):
 
     def get_queryset(self):
         cate = get_object_or_404(Category, pk=self.kwargs.get('pk'))
         return super(CategoryView, self).get_queryset().filter(category=cate)
+
 
 class TagView(IndexView):
 
@@ -133,8 +136,9 @@ class PostDetailView(DetailView):
             'markdown.extensions.extra', 'markdown.extensions.codehilite', TocExtension(slugify=slugify)])
         post.body = md.convert(post.body)
         post.toc = md.toc
-        
+
         return post
+
     def get_context_data(self, **kwargs):
         context = super(PostDetailView, self).get_context_data(**kwargs)
         form = CommentForm()
@@ -144,3 +148,15 @@ class PostDetailView(DetailView):
             'comment_list': comment_list
         })
         return context
+
+
+def search(request):
+    q = request.GET.get('q')
+    error_msg = ''
+    if not q:
+        error_msg = '请输入关键词'
+        return render(request, 'blog/index.html', {'error_msg': error_msg})
+
+    post_list = Post.objects.filter(Q(title__icontains=q) | Q(body__icontains=q))
+    return render(request, 'blog/index.html', {'error_msg': error_msg,
+                                               'post_list': post_list})
