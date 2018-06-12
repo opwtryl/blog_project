@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 import markdown
-from .models import Post, Category
+from .models import Post, Category,Tag
 from comments.forms import CommentForm
 from django.views.generic import ListView, DetailView
 
@@ -98,6 +98,12 @@ class CategoryView(IndexView):
     def get_queryset(self):
         cate = get_object_or_404(Category, pk=self.kwargs.get('pk'))
         return super(CategoryView, self).get_queryset().filter(category=cate)
+
+class TagView(IndexView):
+
+    def get_queryset(self):
+        tag = get_object_or_404(Tag, pk=self.kwargs.get('pk'))
+        return super(TagView, self).get_queryset().filter(tags=tag)
 
 
 class ArchivesView(IndexView):
