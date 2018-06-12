@@ -3,6 +3,8 @@ import markdown
 from .models import Post, Category,Tag
 from comments.forms import CommentForm
 from django.views.generic import ListView, DetailView
+from django.utils.text import slugify
+from markdown.extensions.toc import TocExtension
 
 """ def index(request):
     post_list = Post.objects.all().order_by('-created_time')
@@ -10,7 +12,7 @@ from django.views.generic import ListView, DetailView
  """
 
 
-def detail(request, pk):
+""" def detail(request, pk):
 
     post = get_object_or_404(Post, pk=pk)
     post.increase_views()
@@ -18,7 +20,7 @@ def detail(request, pk):
                                   'markdown.extensions.extra', 'markdown.extensions.codehilite', 'markdown.extensions.toc', ])
     form = CommentForm()
     comment_list = post.comment_set.all()
-    return render(request, 'blog/detail.html', context={'post': post, 'form': form, 'comment_list': comment_list})
+    return render(request, 'blog/detail.html', context={'post': post, 'form': form, 'comment_list': comment_list}) """
 
 
 """ def archives(request, year, month):
@@ -127,11 +129,12 @@ class PostDetailView(DetailView):
     def get_object(self, queryset=None):
 
         post = super(PostDetailView, self).get_object(queryset=None)
-        post.body = markdown.markdown(post.body, extensions=[
-            'markdown.extensions.extra', 'markdown.extensions.codehilite', 'markdown.extensions.toc', ])
-
+        md = markdown.Markdown(extensions=[
+            'markdown.extensions.extra', 'markdown.extensions.codehilite', TocExtension(slugify=slugify)])
+        post.body = md.convert(post.body)
+        post.toc = md.toc
+        
         return post
-
     def get_context_data(self, **kwargs):
         context = super(PostDetailView, self).get_context_data(**kwargs)
         form = CommentForm()
