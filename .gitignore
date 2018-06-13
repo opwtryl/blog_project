@@ -5,3 +5,6 @@ db.sqlite3
 *.key
 settings.json
 fabfile.py
+.toc
+.seg
+MAIN_WRITELOCK
